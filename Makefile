@@ -1,19 +1,65 @@
-# Compiler and linker
+# Compiler setup
 CC = gcc
-CFLAGS = -Wall -O3
+CFLAGS = -Iinclude -Werror -Wno-format -fPIC
 
-# Paths
-SRC = main.c
-OUT = main.exe
+# Directories
+SRCDIR = src
+INCDIR = include
+BUILDDIR = build
+TEMPDIR = temp
+TARGET = $(BUILDDIR)/main.exe
+DLL = chesslib.dll
 
-# DLL import library (adjust path and name if needed)
+# Source and object files
+SOURCES := $(wildcard $(SRCDIR)/*.c) main.c
+OBJECTS := $(patsubst %.c,$(TEMPDIR)/%.o,$(notdir $(SOURCES)))
+
+# Linker flags
 LIBS = -L. -lchesslib
 
-# Targets
-all: $(OUT)
+# Main target
+all: $(BUILDDIR) $(TEMPDIR) $(TARGET)
 
-$(OUT): $(SRC)
-	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $(addprefix $(TEMPDIR)/, $(notdir $(OBJECTS))) $(LIBS) -lm
+ifeq ($(OS),Windows_NT)
+	copy /Y $(DLL) $(BUILDDIR)\$(DLL)
+else
+	cp $(DLL) $(BUILDDIR)/$(DLL)
+endif
 
+$(TEMPDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(TEMPDIR)/main.o: main.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Create directories
+$(BUILDDIR):
+ifeq ($(OS),Windows_NT)
+	if not exist $(BUILDDIR) mkdir $(BUILDDIR)
+else
+	mkdir -p $(BUILDDIR)
+endif
+
+$(TEMPDIR):
+ifeq ($(OS),Windows_NT)
+	if not exist $(TEMPDIR) mkdir $(TEMPDIR)
+else
+	mkdir -p $(TEMPDIR)
+endif
+
+# Clean generated files
 clean:
-	del /Q $(OUT)
+ifeq ($(OS),Windows_NT)
+	rmdir /s /q $(TEMPDIR)
+	rmdir /s /q $(BUILDDIR)
+else
+	rm -rf $(TEMPDIR) $(BUILDDIR)
+endif
+
+# Run the built program
+run: $(TARGET)
+	./$(TARGET)
+
+.PHONY: all clean run
