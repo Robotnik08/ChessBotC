@@ -12,6 +12,10 @@ extern "C" {
 #include <string.h>
 #include <stdbool.h>
 
+int countBits(unsigned long long int n);
+
+int countTrailingZeros(unsigned long long int n);
+
 // format:
 // F: from square
 // T: to square
@@ -27,6 +31,8 @@ typedef unsigned long long int Bitboard;
 
 #define MAX_MOVES 256
 
+#define BB_MAXVAL 14
+
 typedef enum {
     NONE = 0,
 
@@ -38,7 +44,7 @@ typedef enum {
 } BoardState;
 
 typedef struct {
-    Bitboard bitboards[14];
+    Bitboard bitboards[BB_MAXVAL];
 
     bool side_to_move;
     byte castling_rights;
@@ -102,6 +108,14 @@ extern char* generateFEN();
 
 #define WHITE 0
 #define BLACK 8
+
+#define PAWN 0
+#define KNIGHT 1
+#define BISHOP 2
+#define ROOK 3
+#define QUEEN 4
+#define KING 5
+
 #define OTHER_SIDE(side_to_move) ((side_to_move) ? WHITE : BLACK)
 
 extern char* getNotation(Move move);

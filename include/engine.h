@@ -7,9 +7,11 @@ void initEngine();
 
 void cleanupEngine();
 
-Move getbestMove(int seconds);
+Move getbestMove(int seconds, int* depth_searched);
 
-double minMax (int depth);
+double findBestMove(int depth, Move* best_move);
+
+double search(int depth, int color, double alpha, double beta);
 
 double evaluatePosition();
 

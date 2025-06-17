@@ -80,10 +80,12 @@ int main(int argc, char* argv[]) {
                 while ((c = getchar()) != '\n' && c != EOF); // discard leftover input
                 
                 initEngine();
-
-                Move best_move = getbestMove(seconds);
+                int depth_searched = 0;
+                Move best_move = getbestMove(seconds, &depth_searched);
 
                 printMove(best_move);
+                
+                printf("%d\n", depth_searched);
                 
                 cleanupEngine();
 
