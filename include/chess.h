@@ -71,8 +71,9 @@ extern int getIndex(byte piece);
 
 //// chess.h
 
-extern int generateMoves(Move* move_list);
+extern int generateMoves(Move* move_list, bool only_captures);
 
+extern Bitboard getAttackedMap();
 
 //// FEN.h
 

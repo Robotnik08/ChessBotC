@@ -100,17 +100,6 @@ int main(int argc, char* argv[]) {
         }
 
         cleanup();
-        return 0;
     }
-
-    
-    parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
-    Move move_list[MAX_MOVES];
-
-    int move_count = generateMoves(move_list);
-
-    printf("Generated %d moves\n", move_count);
-
     return 0;
 }

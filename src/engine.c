@@ -15,10 +15,7 @@ extern int move_history_count;
 
 
 const double pieceValues[] = {
-    100, 350, 350, 525, 1000, 10, // pawn, knight, bishop, rook, queen, king
-    0, 0,
-    -100, -350, -350, -525, -1000, -10, // pawn, knight, bishop, rook, queen, king
-    0, 0
+    100, 350, 350, 525, 1000 // pawn, knight, bishop, rook, queen;
 };
 
 void initEngine() {
@@ -31,10 +28,10 @@ void cleanupEngine(){
 
 volatile bool stop_search = false;
 Move best_move_so_far = NULL_MOVE;
-int depth = 1;
+int depth = 2;
 
 ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
-    depth = 1;
+    depth = 2;
 
     while (!stop_search) {
         Move move = NULL_MOVE;
@@ -56,6 +53,15 @@ Move getbestMove(int seconds, int* depth_searched) {
     Thread thread;
     stop_search = false;
     best_move_so_far = NULL_MOVE;
+
+    depth = 1;
+    
+    Move move = NULL_MOVE;
+    double eval = findBestMove(depth, &move);
+    if (IS_MATE(eval)) {
+        stop_search = true;
+    }
+    best_move_so_far = move;
 
     START_THREAD(&thread, search_thread_fn, NULL);
 
@@ -92,52 +98,50 @@ Move getbestMove(int seconds, int* depth_searched) {
 
 double findBestMove(int depth, Move* best_move) {
     Move moves[MAX_MOVES];
-    int num_moves = generateMoves(moves);
+    int num_moves = generateMoves(moves, false);
     Move selectedMove = NULL_MOVE;
 
     bool side_to_move = board.side_to_move;
     
     double alpha = -INFINITY;
     double beta = INFINITY;
-    double bestScore = -INFINITY;
 
     for (int i = 0; i < num_moves; i++) {
         makeMove(moves[i]);
-        double eval = -search(depth - 1, (side_to_move == WHITE ? -1 : 1), -INFINITY, INFINITY);
+        double eval = -search(depth - 1, (side_to_move == WHITE ? -1 : 1), -beta, -alpha);
         unmakeMove(moves[i]);
 
-        if (eval > bestScore) {
-            bestScore = eval;
-            selectedMove = moves[i];
+        if (stop_search) {
+            return 0.0;
         }
 
         if (eval > alpha) {
             alpha = eval;
+            selectedMove = moves[i];
         }
-
         if (alpha >= beta) {
             break;
-        }        
+        }
     }
 
     if (best_move) {
         *best_move = selectedMove;
     }
-    
-    return bestScore;
+
+    return alpha;
 }
 
 double search(int depth, int color, double alpha, double beta) {
     if (stop_search) {
-        return 0.0; // Search was stopped
+        return 0.0;
     }
 
     if (depth == 0) {
-        return color * evaluatePosition();
+        return extendedSearch(color, beta, alpha);
     }
 
     Move moves[MAX_MOVES];
-    int num_moves = generateMoves(moves);
+    int num_moves = generateMoves(moves, false);
 
     if (board.state == CHECKMATE) {
         return -MATE_SCORE + depth;
@@ -145,30 +149,60 @@ double search(int depth, int color, double alpha, double beta) {
         return 0.0;
     }
 
-    double maxEval = -INFINITY;
-
     for (int i = 0; i < num_moves; i++) {
         makeMove(moves[i]);
         double eval = -search(depth - 1, -color, -beta, -alpha);
         unmakeMove(moves[i]);
-        if (eval > maxEval) {
-            maxEval = eval;
+
+        if (eval >= beta) {
+            return beta;
         }
-        if (maxEval > alpha) {
-            alpha = maxEval;
-        }
-        if (alpha >= beta) {
-            break;
+        if (eval > alpha) {
+            alpha = eval;
         }
     }
 
-    return maxEval;
+    return alpha;
+}
+
+// only searches captures
+double extendedSearch (int color, double beta, double alpha) {
+    if (stop_search) {
+        return 0.0;
+    }
+
+    double eval = color * evaluatePosition();
+    if (eval >= beta) {
+        return beta;
+    }
+    if (eval > alpha) {
+        alpha = eval;
+    }
+
+    Move moves[MAX_MOVES];
+    int num_moves = generateMoves(moves, true);
+
+    for (int i = 0; i < num_moves; i++) {
+        makeMove(moves[i]);
+        double score = -extendedSearch(-color, -alpha, -beta);
+        unmakeMove(moves[i]);
+
+        if (score >= beta) {
+            return beta;
+        }
+        if (score > alpha) {
+            alpha = score;
+        }
+    }
+
+    return alpha;
 }
 
 double evaluatePosition() {
     double eval = 0.0;
-    for (int i = 0; i < BB_MAXVAL; i++) {
-        eval += countBits(board.bitboards[i]) * pieceValues[i];
+    for (int i = PAWN; i <= KING; i++) {
+        eval += countBits(board.bitboards[i + WHITE]) * pieceValues[i];
+        eval -= countBits(board.bitboards[i + BLACK]) * pieceValues[i];
     }
     
     return eval;
