@@ -34,9 +34,6 @@ int findBestMove(int depth, Move* best_move) {
             alpha = eval;
             selectedMove = moves[i];
         }
-        if (alpha >= beta) {
-            break;
-        }
     }
 
     if (best_move) {
@@ -52,7 +49,7 @@ int search(int depth, int color, int alpha, int beta) {
     }
 
     if (depth == 0) {
-        return extendedSearch(color, beta, alpha);
+        return extendedSearch(color, alpha, beta);
     }
 
     Move moves[MAX_MOVES];
@@ -86,7 +83,7 @@ int search(int depth, int color, int alpha, int beta) {
 }
 
 // only searches captures
-int extendedSearch (int color, int beta, int alpha) {
+int extendedSearch (int color, int alpha, int beta) {
     if (stop_search) {
         return 0;
     }
@@ -107,9 +104,9 @@ int extendedSearch (int color, int beta, int alpha) {
 
     for (int i = 0; i < num_moves; i++) {
         swapNextBestMove(moves, move_scores, num_moves, i);
-        
+
         makeMove(moves[i]);
-        int score = -extendedSearch(-color, -alpha, -beta);
+        int score = -extendedSearch(-color, -beta, -alpha);
         unmakeMove(moves[i]);
 
         if (score >= beta) {

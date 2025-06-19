@@ -1,0 +1,10 @@
+#ifndef POSITION_MAPS_H
+#define POSITION_MAPS_H
+
+#include "chess.h"
+
+#define IDX(piece, color, square) ((piece | color) * 64 + square)
+
+void initPositionMaps();
+
+#endif

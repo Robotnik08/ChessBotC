@@ -14,8 +14,6 @@ extern "C" {
 
 int countBits(unsigned long long int n);
 
-int countTrailingZeros(unsigned long long int n);
-
 // format:
 // F: from square
 // T: to square
@@ -120,6 +118,8 @@ extern char* generateFEN();
 #define ROOK 3
 #define QUEEN 4
 #define KING 5
+
+#define EMPTY 255 // special value for empty square
 
 #define PIECE_MASK 0b111 // 3 bits for piece type
 

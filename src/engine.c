@@ -2,13 +2,14 @@
 #include "chess.h"
 #include "search_move.h"
 #include "threads.h"
+#include "position_maps.h"
 
 #include <time.h>
 #include <math.h>
 #include <float.h>
 
 void initEngine() {
-    // init
+    initPositionMaps();
 }
 
 void cleanupEngine(){
@@ -79,7 +80,7 @@ Move getbestMove(int seconds, int* depth_searched) {
 #endif
 
     if (depth_searched) {
-        *depth_searched = depth;
+        *depth_searched = depth - 1; // Return the last depth searched
     }
 
     return best_move_so_far;

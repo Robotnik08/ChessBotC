@@ -12,10 +12,13 @@ int getMoveScore (Move move, Bitboard attacked_map) {
     int to = TO(move);
     int extra = EXTRA(move);
 
-    int piece_from = TYPE(board.bitboards[getFromLocation(from)]);
-    int piece_to = TYPE(board.bitboards[getFromLocation(to)]);
+    int piece_from = getFromLocation(from);
+    int piece_to = getFromLocation(to);
 
-    if (piece_from == PAWN) {
+    int piece_type_from = TYPE(piece_from);
+    int piece_type_to = TYPE(piece_to);
+
+    if (piece_type_from == PAWN) {
         switch (extra) {
             case EN_PASSANT:
                 score += EN_PASSANT_VALUE;
@@ -35,14 +38,14 @@ int getMoveScore (Move move, Bitboard attacked_map) {
             default:
                 break;
         }
-    } else if (to & attacked_map) {
-        score += ATTACKED_PENALTY; // penalize moves to attacked squares
+    } else if ((1ULL << to) & attacked_map) {
+        score -= ATTACKED_PENALTY; // penalize moves to attacked squares
     }
     
 
-    if (piece_to != 0) {
-        int value_from = pieceValues[piece_from];
-        int value_to = pieceValues[piece_to];
+    if (piece_to != EMPTY) {
+        int value_from = pieceValues[piece_type_from];
+        int value_to = pieceValues[piece_type_to];
 
         score += 10 * value_to - value_from;
     }
