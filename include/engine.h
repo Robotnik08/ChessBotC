@@ -9,12 +9,4 @@ void cleanupEngine();
 
 Move getbestMove(int seconds, int* depth_searched);
 
-double findBestMove(int depth, Move* best_move);
-
-double search(int depth, int color, double alpha, double beta);
-
-double extendedSearch (int color, double beta, double alpha);
-
-double evaluatePosition();
-
 #endif // ENGINE_H

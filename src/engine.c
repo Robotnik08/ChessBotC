@@ -1,22 +1,11 @@
 #include "engine.h"
 #include "chess.h"
+#include "search_move.h"
 #include "threads.h"
 
 #include <time.h>
 #include <math.h>
 #include <float.h>
-
-#define MATE_SCORE 1000000.0
-#define IS_MATE(score) (fabs(score) >= MATE_SCORE - 100)
-
-extern Board board;
-extern unsigned long long int repetition_history[1000];
-extern int move_history_count;
-
-
-const double pieceValues[] = {
-    100, 350, 350, 525, 1000 // pawn, knight, bishop, rook, queen;
-};
 
 void initEngine() {
     // init
@@ -35,7 +24,7 @@ ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
 
     while (!stop_search) {
         Move move = NULL_MOVE;
-        double eval = findBestMove(depth, &move);
+        int eval = findBestMove(depth, &move);
         if (stop_search) break;
         if (IS_MATE(eval)) {
             best_move_so_far = move;
@@ -57,7 +46,7 @@ Move getbestMove(int seconds, int* depth_searched) {
     depth = 1;
     
     Move move = NULL_MOVE;
-    double eval = findBestMove(depth, &move);
+    int eval = findBestMove(depth, &move);
     if (IS_MATE(eval)) {
         stop_search = true;
     }
@@ -94,116 +83,4 @@ Move getbestMove(int seconds, int* depth_searched) {
     }
 
     return best_move_so_far;
-}
-
-double findBestMove(int depth, Move* best_move) {
-    Move moves[MAX_MOVES];
-    int num_moves = generateMoves(moves, false);
-    Move selectedMove = NULL_MOVE;
-
-    bool side_to_move = board.side_to_move;
-    
-    double alpha = -INFINITY;
-    double beta = INFINITY;
-
-    for (int i = 0; i < num_moves; i++) {
-        makeMove(moves[i]);
-        double eval = -search(depth - 1, (side_to_move == WHITE ? -1 : 1), -beta, -alpha);
-        unmakeMove(moves[i]);
-
-        if (stop_search) {
-            return 0.0;
-        }
-
-        if (eval > alpha) {
-            alpha = eval;
-            selectedMove = moves[i];
-        }
-        if (alpha >= beta) {
-            break;
-        }
-    }
-
-    if (best_move) {
-        *best_move = selectedMove;
-    }
-
-    return alpha;
-}
-
-double search(int depth, int color, double alpha, double beta) {
-    if (stop_search) {
-        return 0.0;
-    }
-
-    if (depth == 0) {
-        return extendedSearch(color, beta, alpha);
-    }
-
-    Move moves[MAX_MOVES];
-    int num_moves = generateMoves(moves, false);
-
-    if (board.state == CHECKMATE) {
-        return -MATE_SCORE + depth;
-    } else if (board.state != NONE) {
-        return 0.0;
-    }
-
-    for (int i = 0; i < num_moves; i++) {
-        makeMove(moves[i]);
-        double eval = -search(depth - 1, -color, -beta, -alpha);
-        unmakeMove(moves[i]);
-
-        if (eval >= beta) {
-            return beta;
-        }
-        if (eval > alpha) {
-            alpha = eval;
-        }
-    }
-
-    return alpha;
-}
-
-// only searches captures
-double extendedSearch (int color, double beta, double alpha) {
-    if (stop_search) {
-        return 0.0;
-    }
-
-    double eval = color * evaluatePosition();
-    if (eval >= beta) {
-        return beta;
-    }
-    if (eval > alpha) {
-        alpha = eval;
-    }
-
-    Move moves[MAX_MOVES];
-    int num_moves = generateMoves(moves, true);
-
-    for (int i = 0; i < num_moves; i++) {
-        makeMove(moves[i]);
-        double score = -extendedSearch(-color, -alpha, -beta);
-        unmakeMove(moves[i]);
-
-        if (score >= beta) {
-            return beta;
-        }
-        if (score > alpha) {
-            alpha = score;
-        }
-    }
-
-    return alpha;
-}
-
-double evaluatePosition() {
-    double eval = 0.0;
-    for (int i = PAWN; i <= KING; i++) {
-        eval += countBits(board.bitboards[i + WHITE]) * pieceValues[i];
-        eval -= countBits(board.bitboards[i + BLACK]) * pieceValues[i];
-    }
-    
-    return eval;
 }

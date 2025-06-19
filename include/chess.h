@@ -75,6 +75,8 @@ extern int generateMoves(Move* move_list, bool only_captures);
 
 extern Bitboard getAttackedMap();
 
+extern Bitboard getAttackedMapOnlyPawn();
+
 //// FEN.h
 
 extern void parseFEN(char* fen);
@@ -107,6 +109,8 @@ extern char* generateFEN();
 #define PROMOTION_ROOK 6
 #define PROMOTION_QUEEN 7
 
+#define PROMOTION_MASK 0b100 // 3rd bit is set if the move is a promotion
+
 #define WHITE 0
 #define BLACK 8
 
@@ -116,6 +120,11 @@ extern char* generateFEN();
 #define ROOK 3
 #define QUEEN 4
 #define KING 5
+
+#define PIECE_MASK 0b111 // 3 bits for piece type
+
+#define COLOR(piece) ((piece) & BLACK)
+#define TYPE(piece) ((piece) & PIECE_MASK)
 
 #define OTHER_SIDE(side_to_move) ((side_to_move) ? WHITE : BLACK)
 
