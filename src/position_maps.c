@@ -108,16 +108,12 @@ void initPositionMaps() {
         whiteBishopMap[i] += pieceValues[BISHOP];
         whiteRookMap[i] += pieceValues[ROOK];
         whiteQueenMap[i] += pieceValues[QUEEN];
-        whiteKingMapMiddleGame[i] += pieceValues[KING];
-        whiteKingMapEndGame[i] += pieceValues[KING];
 
         blackPawnMap[i] += pieceValues[PAWN];
         blackKnightMap[i] += pieceValues[KNIGHT];
         blackBishopMap[i] += pieceValues[BISHOP];
         blackRookMap[i] += pieceValues[ROOK];
         blackQueenMap[i] += pieceValues[QUEEN];
-        blackKingMapMiddleGame[i] += pieceValues[KING];
-        blackKingMapEndGame[i] += pieceValues[KING];
     }
 
     memcpy(&tables[0 * 64], whitePawnMap, sizeof(whitePawnMap));

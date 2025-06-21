@@ -9,7 +9,7 @@
 #define NEGATIVE_INFINITY -POSITIVE_INFINITY
 #define MATE_SCORE 1000000 // Mate score is 10 times smaller than the maximum score to avoid confusion with normal evaluations
 
-int findBestMove(int depth, Move* best_move);
+int findBestMove(int depth, Move* best_move, int best_move_index);
 
 int search(int depth, int color, int alpha, int beta);
 

@@ -9,12 +9,16 @@ extern int move_history_count;
 
 extern volatile bool stop_search;
 
-int findBestMove(int depth, Move* best_move) {
+int findBestMove(int depth, Move* best_move, int best_move_index) {
     Move moves[MAX_MOVES];
     int num_moves = generateMoves(moves, false);
 
     int move_scores[MAX_MOVES];
     getScores(moves, move_scores, num_moves, getAttackedMapOnlyPawn());
+    
+    if (best_move_index != -1) {
+        move_scores[best_move_index] = POSITIVE_INFINITY;
+    }
 
     Move selectedMove = NULL_MOVE;
 
@@ -29,6 +33,14 @@ int findBestMove(int depth, Move* best_move) {
         makeMove(moves[i]);
         int eval = -search(depth - 1, -color, -beta, -alpha);
         unmakeMove(moves[i]);
+
+        if (stop_search) {
+            if (best_move) {
+                *best_move = selectedMove;
+            }
+
+            return alpha;
+        }
 
         if (eval > alpha) {
             alpha = eval;
@@ -71,6 +83,10 @@ int search(int depth, int color, int alpha, int beta) {
         int eval = -search(depth - 1, -color, -beta, -alpha);
         unmakeMove(moves[i]);
 
+        if (stop_search) {
+            return 0;
+        }
+
         if (eval >= beta) {
             return beta;
         }
@@ -108,6 +124,10 @@ int extendedSearch (int color, int alpha, int beta) {
         makeMove(moves[i]);
         int score = -extendedSearch(-color, -beta, -alpha);
         unmakeMove(moves[i]);
+
+        if (stop_search) {
+            return 0;
+        }
 
         if (score >= beta) {
             return beta;

@@ -3,6 +3,7 @@
 #include "search_move.h"
 #include "threads.h"
 #include "position_maps.h"
+#include "evaluate.h"
 
 #include <time.h>
 #include <math.h>
@@ -10,6 +11,7 @@
 
 void initEngine() {
     initPositionMaps();
+    initCombinedValues();
 }
 
 void cleanupEngine(){
@@ -19,18 +21,33 @@ void cleanupEngine(){
 volatile bool stop_search = false;
 Move best_move_so_far = NULL_MOVE;
 int depth = 2;
+int best_move_index = -1;
 
 ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
     depth = 2;
 
     while (!stop_search) {
         Move move = NULL_MOVE;
-        int eval = findBestMove(depth, &move);
-        if (stop_search) break;
+        int eval = findBestMove(depth, &move, best_move_index);
+        if (stop_search) {
+            if (move != NULL_MOVE) {
+                // don't discard the best move found so far, since if it's the same as the last one, no harm is done, but if it found a better move, we want to keep it
+                best_move_so_far = move;
+            }
+            break;
+        }
         if (IS_MATE(eval)) {
             best_move_so_far = move;
             stop_search = true;
             break;
+        }
+        Move moves[MAX_MOVES];
+        int num_moves = generateMoves(moves, false);
+        for (int i = 0; i < num_moves; i++) {
+            if (moves[i] == move) {
+                best_move_index = i;
+                break;
+            }
         }
         best_move_so_far = move;
         depth++;
@@ -39,25 +56,36 @@ ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
     return 0;
 }
 
-Move getbestMove(int seconds, int* depth_searched) {
+Move getbestMove(int milli_seconds, int* depth_searched) {
     Thread thread;
     stop_search = false;
     best_move_so_far = NULL_MOVE;
 
     depth = 1;
     
+    best_move_index = -1;
     Move move = NULL_MOVE;
-    int eval = findBestMove(depth, &move);
+    int eval = findBestMove(depth, &move, best_move_index);
     if (IS_MATE(eval)) {
         stop_search = true;
     }
     best_move_so_far = move;
 
+    Move moves[MAX_MOVES];
+    int num_moves = generateMoves(moves, false);
+    for (int i = 0; i < num_moves; i++) {
+        if (moves[i] == move) {
+            best_move_index = i;
+            break;
+        }
+    }
+
+
     START_THREAD(&thread, search_thread_fn, NULL);
 
 #if defined(_WIN32) || defined(_WIN64)
     // Windows: wait up to `seconds`, but return early if thread ends
-    DWORD wait_result = WaitForSingleObject(thread, seconds * 1000);
+    DWORD wait_result = WaitForSingleObject(thread, milli_seconds);
     if (wait_result == WAIT_TIMEOUT) {
         stop_search = true;
         WaitForSingleObject(thread, INFINITE);  // ensure cleanup

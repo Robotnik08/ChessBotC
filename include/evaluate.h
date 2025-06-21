@@ -5,4 +5,6 @@
 
 int evaluatePosition();
 
+void initCombinedValues();
+
 #endif // EVALUATE_H

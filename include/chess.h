@@ -12,8 +12,6 @@ extern "C" {
 #include <string.h>
 #include <stdbool.h>
 
-int countBits(unsigned long long int n);
-
 // format:
 // F: from square
 // T: to square

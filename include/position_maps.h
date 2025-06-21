@@ -5,6 +5,9 @@
 
 #define IDX(piece, color, square) ((piece | color) * 64 + square)
 
+#define KING_MIDGAME (KING)
+#define KING_ENDGAME (KING + 1)
+
 void initPositionMaps();
 
 #endif
