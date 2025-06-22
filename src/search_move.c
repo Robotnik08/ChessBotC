@@ -2,6 +2,7 @@
 #include "evaluate.h"
 #include "chess.h"
 #include "order.h"
+#include "transposition_table.h"
 
 extern Board board;
 extern unsigned long long int repetition_history[1000];
@@ -21,8 +22,6 @@ int findBestMove(int depth, Move* best_move, int best_move_index) {
     }
 
     Move selectedMove = NULL_MOVE;
-
-    int color = (board.side_to_move == WHITE) ? 1 : -1;
     
     int alpha = NEGATIVE_INFINITY;
     int beta = POSITIVE_INFINITY;
@@ -31,7 +30,7 @@ int findBestMove(int depth, Move* best_move, int best_move_index) {
         swapNextBestMove(moves, move_scores, num_moves, i);
 
         makeMove(moves[i]);
-        int eval = -search(depth - 1, -color, -beta, -alpha);
+        int eval = -search(depth - 1, -beta, -alpha);
         unmakeMove(moves[i]);
 
         if (stop_search) {
@@ -55,32 +54,53 @@ int findBestMove(int depth, Move* best_move, int best_move_index) {
     return alpha;
 }
 
-int search(int depth, int color, int alpha, int beta) {
+int search(int depth, int alpha, int beta) {
     if (stop_search) {
         return 0;
     }
 
-    if (depth == 0) {
-        return extendedSearch(color, alpha, beta);
+    uint64_t hash = getZobristHash();
+    TranspositionTableEntry* entry = getTranspositionTableEntry(hash);
+    if (entry && entry->depth >= depth) {
+        int score = entry->score;
+        
+        if (entry->type == EXACT) {
+            return score;
+        } else if (entry->type == UPPER_BOUND) {
+            if (score <= alpha) {
+                return score;
+            }
+        } else if (entry->type == LOWER_BOUND) {
+            if (score >= beta) {
+                return score;
+            }
+        }
     }
 
+    if (depth == 0) {
+        return extendedSearch(alpha, beta);
+    }
+    
     Move moves[MAX_MOVES];
     int num_moves = generateMoves(moves, false);
-    
-    int move_scores[MAX_MOVES];
-    getScores(moves, move_scores, num_moves, getAttackedMapOnlyPawn());
 
     if (board.state == CHECKMATE) {
         return -MATE_SCORE + depth;
     } else if (board.state != NONE) {
         return 0;
     }
+    
+    int move_scores[MAX_MOVES];
+    getScores(moves, move_scores, num_moves, getAttackedMapOnlyPawn());
+
+    int original_alpha = alpha;
+    Move best_move = NULL_MOVE;
 
     for (int i = 0; i < num_moves; i++) {
         swapNextBestMove(moves, move_scores, num_moves, i);
         
         makeMove(moves[i]);
-        int eval = -search(depth - 1, -color, -beta, -alpha);
+        int eval = -search(depth - 1, -beta, -alpha);
         unmakeMove(moves[i]);
 
         if (stop_search) {
@@ -88,23 +108,28 @@ int search(int depth, int color, int alpha, int beta) {
         }
 
         if (eval >= beta) {
+            storeTranspositionTableEntry(hash, beta, depth, LOWER_BOUND, moves[i]);
             return beta;
         }
+
         if (eval > alpha) {
             alpha = eval;
+            best_move = moves[i];
         }
     }
+
+    storeTranspositionTableEntry(hash, alpha, depth, (alpha > original_alpha) ? EXACT: UPPER_BOUND, best_move);
 
     return alpha;
 }
 
 // only searches captures
-int extendedSearch (int color, int alpha, int beta) {
+int extendedSearch (int alpha, int beta) {
     if (stop_search) {
         return 0;
     }
 
-    int eval = color * evaluatePosition();
+    int eval = evaluatePosition();
     if (eval >= beta) {
         return beta;
     }
@@ -122,7 +147,7 @@ int extendedSearch (int color, int alpha, int beta) {
         swapNextBestMove(moves, move_scores, num_moves, i);
 
         makeMove(moves[i]);
-        int score = -extendedSearch(-color, -beta, -alpha);
+        int score = -extendedSearch(-beta, -alpha);
         unmakeMove(moves[i]);
 
         if (stop_search) {

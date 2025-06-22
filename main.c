@@ -6,6 +6,8 @@ extern Board board;
 extern unsigned long long int repetition_history[1000];
 extern int move_history_count;
 
+int debug = 0;
+
 void trim_newline(char* str) {
     size_t len = strlen(str);
     if (len > 0 && str[len - 1] == '\n') {
@@ -73,7 +75,7 @@ int main(int argc, char* argv[]) {
                 int depth_searched = 0;
                 Move best_move = getbestMove(milliseconds, &depth_searched);
                 printMove(best_move); // this prints to stdout (e.g., "e2e4")
-                printf("%d\n", depth_searched);
+                printf("%d\n", debug);
 
                 printf("ok\n");
 
