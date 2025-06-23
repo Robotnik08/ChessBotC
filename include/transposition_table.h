@@ -27,7 +27,11 @@ void clearTranspositionTable();
 
 int getTranspositionTableIndex(uint64_t key);
 
-void storeTranspositionTableEntry(uint64_t key, int score, int depth, NodeType type, Move best_move);
+int convertMateScoreToTT(int score, int depth_searched);
+
+int correctMateScoreFromTT(int score, int depth_searched);
+
+void storeTranspositionTableEntry(uint64_t key, int score, int depth, int depth_searched, NodeType type, Move best_move);
 
 TranspositionTableEntry* getTranspositionTableEntry(uint64_t key);
 

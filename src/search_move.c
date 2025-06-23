@@ -30,7 +30,7 @@ int findBestMove(int depth, Move* best_move, int best_move_index) {
         swapNextBestMove(moves, move_scores, num_moves, i);
 
         makeMove(moves[i]);
-        int eval = -search(depth - 1, -beta, -alpha);
+        int eval = -search(depth - 1, 0, -beta, -alpha);
         unmakeMove(moves[i]);
 
         if (stop_search) {
@@ -54,15 +54,22 @@ int findBestMove(int depth, Move* best_move, int best_move_index) {
     return alpha;
 }
 
-int search(int depth, int alpha, int beta) {
+int search(int depth, int ply_from_root, int alpha, int beta) {
     if (stop_search) {
         return 0;
+    }
+
+    // skip if mating sequence was already found and better then this ply
+    alpha = __max(alpha, -MATE_SCORE + ply_from_root);
+    beta = __min(beta, MATE_SCORE - ply_from_root);
+    if (alpha >= beta) {
+        return alpha;
     }
 
     uint64_t hash = getZobristHash();
     TranspositionTableEntry* entry = getTranspositionTableEntry(hash);
     if (entry && entry->depth >= depth) {
-        int score = entry->score;
+        int score = correctMateScoreFromTT(entry->score, ply_from_root);
         
         if (entry->type == EXACT) {
             return score;
@@ -85,7 +92,7 @@ int search(int depth, int alpha, int beta) {
     int num_moves = generateMoves(moves, false);
 
     if (board.state == CHECKMATE) {
-        return -MATE_SCORE + depth;
+        return -(MATE_SCORE - ply_from_root);
     } else if (board.state != NONE) {
         return 0;
     }
@@ -100,7 +107,7 @@ int search(int depth, int alpha, int beta) {
         swapNextBestMove(moves, move_scores, num_moves, i);
         
         makeMove(moves[i]);
-        int eval = -search(depth - 1, -beta, -alpha);
+        int eval = -search(depth - 1, ply_from_root + 1, -beta, -alpha);
         unmakeMove(moves[i]);
 
         if (stop_search) {
@@ -108,7 +115,7 @@ int search(int depth, int alpha, int beta) {
         }
 
         if (eval >= beta) {
-            storeTranspositionTableEntry(hash, beta, depth, LOWER_BOUND, moves[i]);
+            storeTranspositionTableEntry(hash, beta, depth, ply_from_root, LOWER_BOUND, moves[i]);
             return beta;
         }
 
@@ -118,7 +125,7 @@ int search(int depth, int alpha, int beta) {
         }
     }
 
-    storeTranspositionTableEntry(hash, alpha, depth, (alpha > original_alpha) ? EXACT: UPPER_BOUND, best_move);
+    storeTranspositionTableEntry(hash, alpha, depth, ply_from_root, (alpha > original_alpha) ? EXACT: UPPER_BOUND, best_move);
 
     return alpha;
 }

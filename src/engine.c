@@ -44,6 +44,8 @@ ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
         if (IS_MATE(eval)) {
             best_move_so_far = move;
             stop_search = true;
+
+            clearTranspositionTable(); // the transposition table breaks when a mate is found, don't know why yet
             break;
         }
         Move moves[MAX_MOVES];
@@ -73,6 +75,7 @@ Move getbestMove(int milli_seconds, int* depth_searched) {
     int eval = findBestMove(depth, &move, best_move_index);
     if (IS_MATE(eval)) {
         stop_search = true;
+        clearTranspositionTable(); // the transposition table breaks when a mate is found, don't know why yet
     }
     best_move_so_far = move;
 

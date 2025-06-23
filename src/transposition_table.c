@@ -1,5 +1,6 @@
 #include "transposition_table.h"
 #include "chess.h"
+#include "search_move.h"
 
 TranspositionTableEntry transposition_table[TT_SIZE];
 
@@ -15,10 +16,26 @@ int getTranspositionTableIndex(uint64_t key) {
     return key & TT_MASK;
 }
 
-void storeTranspositionTableEntry(uint64_t key, int score, int depth, NodeType type, Move best_move) {
+int convertMateScoreToTT(int score, int depth_searched) {
+    if (IS_MATE(score)) {
+        int sign = (score > 0) ? 1 : -1;
+        return (score * sign + depth_searched) * sign;
+    }
+    return score;
+}
+
+int correctMateScoreFromTT(int score, int depth_searched) {
+    if (IS_MATE(score)) {
+        int sign = (score > 0) ? 1 : -1;
+        return (score * sign - depth_searched) * sign;
+    }
+    return score;
+}
+
+void storeTranspositionTableEntry(uint64_t key, int score, int depth, int depth_searched, NodeType type, Move best_move) {
     transposition_table[getTranspositionTableIndex(key)] = (TranspositionTableEntry){
         .key = key,
-        .score = score,
+        .score = convertMateScoreToTT(score, depth_searched),
         .depth = depth,
         .type = type,
         .best_move = best_move

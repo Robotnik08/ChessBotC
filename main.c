@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
                 int depth_searched = 0;
                 Move best_move = getbestMove(milliseconds, &depth_searched);
                 printMove(best_move); // this prints to stdout (e.g., "e2e4")
-                printf("%d\n", debug);
+                printf("%d\n", depth_searched);
 
                 printf("ok\n");
 
