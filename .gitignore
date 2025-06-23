@@ -3,3 +3,5 @@
 build
 temp
 versions
+book_formatted.txt
+book.bin

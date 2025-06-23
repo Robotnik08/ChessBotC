@@ -6,6 +6,8 @@ extern Board board;
 extern unsigned long long int repetition_history[1000];
 extern int move_history_count;
 
+int debug = 0;
+
 void trim_newline(char* str) {
     size_t len = strlen(str);
     if (len > 0 && str[len - 1] == '\n') {
@@ -14,7 +16,7 @@ void trim_newline(char* str) {
 }
 
 int main(int argc, char* argv[]) {
-    init();
+    initChess();
     initEngine();
 
     char line[2048];
@@ -38,24 +40,7 @@ int main(int argc, char* argv[]) {
 
                 char* token = strtok(line, " ");
                 while (token != NULL) {
-                    int extra = 0;
-                    if (token[4] != '\0') {
-                        switch (token[4]) {
-                            case 'e': extra = EN_PASSANT; break;
-                            case 'l': extra = PAWN_LEAP; break;
-                            case 'o': extra = CASTLE; break;
-                            case 'n': extra = PROMOTION_KNIGHT; break;
-                            case 'b': extra = PROMOTION_BISHOP; break;
-                            case 'r': extra = PROMOTION_ROOK; break;
-                            case 'q': extra = PROMOTION_QUEEN; break;
-                        }
-                    }
-
-                    Move move = MOVE(
-                        (token[0] - 'a') + 8 * (token[1] - '1'),
-                        (token[2] - 'a') + 8 * (token[3] - '1'),
-                        extra
-                    );
+                    Move move = stringToMove(token);
 
                     makeMove(move);
                     move_history_count++;
@@ -89,7 +74,7 @@ int main(int argc, char* argv[]) {
         }
 
         cleanupEngine();
-        cleanup();
+        cleanupChess();
     }
     return 0;
 }

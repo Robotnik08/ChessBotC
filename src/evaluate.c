@@ -37,9 +37,9 @@ int evaluatePosition() {
             if (whiteBoard) {
                 Bitboard wb = whiteBoard;
                 while (wb) {
-                    int square = __builtin_ctzll(wb); // get the index of the least significant bit
-                    eval += tables[IDX(i, WHITE, square)]; // add positional value for white pieces
-                    wb &= wb - 1; // clear the least significant bit
+                    int square = __builtin_ctzll(wb);
+                    eval += tables[IDX(i, WHITE, square)];
+                    wb &= wb - 1;
                     
                     if (i != PAWN) {
                         points += pieceValues[i];
@@ -49,9 +49,9 @@ int evaluatePosition() {
             if (blackBoard) {
                 Bitboard bb = blackBoard;
                 while (bb) {
-                    int square = __builtin_ctzll(bb); // get the index of the least significant bit
-                    eval -= tables[IDX(i, BLACK, square)]; // subtract positional value for black pieces
-                    bb &= bb - 1; // clear the least significant bit
+                    int square = __builtin_ctzll(bb);
+                    eval -= tables[IDX(i, BLACK, square)];
+                    bb &= bb - 1;
                     
                     if (i != PAWN) {
                         points += pieceValues[i];
@@ -61,7 +61,7 @@ int evaluatePosition() {
         }
     }
     
-    return eval;
+    return eval * (board.side_to_move == WHITE ? 1 : -1);
 }
 
 void initCombinedValues() {

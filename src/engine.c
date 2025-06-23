@@ -4,6 +4,7 @@
 #include "threads.h"
 #include "position_maps.h"
 #include "evaluate.h"
+#include "transposition_table.h"
 
 #include <time.h>
 #include <math.h>
@@ -12,6 +13,7 @@
 void initEngine() {
     initPositionMaps();
     initCombinedValues();
+    initTranspositionTable();
 }
 
 void cleanupEngine(){
@@ -22,6 +24,8 @@ volatile bool stop_search = false;
 Move best_move_so_far = NULL_MOVE;
 int depth = 2;
 int best_move_index = -1;
+
+extern int debug;
 
 ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
     depth = 2;
@@ -36,9 +40,12 @@ ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
             }
             break;
         }
+        debug = eval;
         if (IS_MATE(eval)) {
             best_move_so_far = move;
             stop_search = true;
+
+            clearTranspositionTable(); // the transposition table breaks when a mate is found, don't know why yet
             break;
         }
         Move moves[MAX_MOVES];
@@ -68,6 +75,7 @@ Move getbestMove(int milli_seconds, int* depth_searched) {
     int eval = findBestMove(depth, &move, best_move_index);
     if (IS_MATE(eval)) {
         stop_search = true;
+        clearTranspositionTable(); // the transposition table breaks when a mate is found, don't know why yet
     }
     best_move_so_far = move;
 

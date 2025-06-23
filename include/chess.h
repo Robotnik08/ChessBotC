@@ -73,6 +73,8 @@ extern Bitboard getAttackedMap();
 
 extern Bitboard getAttackedMapOnlyPawn();
 
+extern void updateBoardState(bool check_insufficient_material);
+
 //// FEN.h
 
 extern void parseFEN(char* fen);
@@ -136,6 +138,7 @@ extern void printMove(Move move);
 
 extern void printMoves(bool numbered, Move* moves, byte num_moves);
 
+extern Move stringToMove(const char* str);
 
 //// zobrist_hashing.h
 
@@ -144,9 +147,9 @@ extern unsigned long long int getZobristHash();
 
 //// main
 
-extern void init();
+extern void initChess();
 
-extern void cleanup();
+extern void cleanupChess();
 
 
 #ifdef __cplusplus

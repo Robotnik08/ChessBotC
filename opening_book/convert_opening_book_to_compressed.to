@@ -1,0 +1,60 @@
+// Opening book data compression script (turns the big text file into a compressed binary file).
+import "chess"
+
+do chessInit()
+
+const inputFile = "book.txt"
+const content = read(inputFile)
+
+const positions = stringSplit(content, "pos ")
+
+const output = []
+
+do {
+    const parts = stringSplit(pos, "\n")
+    const fen = shift(parts) + " 0 1"
+    do push(output, (ubyte)0)
+    do chessLoadFEN(fen)
+    do push(output, i) for i in split_into_bytes(chessGetZobristHash())
+    do {
+        do push(output, i) for i in split_into_bytes(chessStringToMove(move))
+        // push the weight of the move
+        const short weight = stringToInt(stringSplit(move, " ")#1)
+        do push(output, i) for i in split_into_bytes(weight)
+    } for move in parts
+} for pos in positions
+
+const outputFile = "book.bin"
+do writeBytes(outputFile, output)
+do sayln(len(output), " bytes written to ", outputFile)
+
+do sayln("Converting to formatted output..., might take a while...")
+const outputFileFormatted = "book_formatted.txt"
+do write(outputFileFormatted, '{')
+do append(outputFileFormatted, `{i},`) for i in output
+do append(outputFileFormatted, '}')
+do sayln("Formatted output written to ", outputFile + ".txt")
+
+define split_into_bytes(n) {
+    make amount = 8
+    match typeOf(n) => {
+        "byte", "ubyte" => { return [(ubyte)n] }
+        "short", "ushort" => {
+            set amount = 2
+        }
+        "int", "uint" => {
+            set amount = 4
+        }
+        "long", "ulong" => {
+            set amount = 8
+        }
+    }
+
+    const bytes = []
+    do {
+        const b = n & 0xFF
+        do push(bytes, (ubyte)b)
+        set n >>= 8
+    } for range(amount)
+    return bytes
+}
