@@ -5,15 +5,20 @@
 #include "position_maps.h"
 #include "evaluate.h"
 #include "transposition_table.h"
+#include "opening_book.h"
 
 #include <time.h>
 #include <math.h>
 #include <float.h>
+#include <stdint.h>
+
+bool inBook = false;
 
 void initEngine() {
     initPositionMaps();
     initCombinedValues();
     initTranspositionTable();
+    initOpeningBook();
 }
 
 void cleanupEngine(){
@@ -67,6 +72,22 @@ Move getbestMove(int milli_seconds, int* depth_searched) {
     Thread thread;
     stop_search = false;
     best_move_so_far = NULL_MOVE;
+
+    // check book if book move is found
+    if (inBook) {
+        uint64_t hash = getZobristHash();
+        Move book_move = getBookMove(hash, 0);
+        if (book_move != NULL_MOVE) {
+            best_move_so_far = book_move;
+            best_move_index = -1; // no index in the move list, since it's a book move
+            if (depth_searched) {
+                *depth_searched = 0; // no depth searched for book moves
+            }
+            return best_move_so_far;
+        }
+
+        inBook = false; // disable book after the first move non book move is found
+    }
 
     depth = 1;
     

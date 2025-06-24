@@ -10,16 +10,26 @@ const positions = stringSplit(content, "pos ")
 
 const output = []
 
+//  format:
+//  first 4 bytes: amount of positions in the book
+//  per position:
+//      first byte: number of entries
+//      next 8 bytes: hash
+//      per entry:
+//          next 2 bytes: move
+//          next 4 bytes: weight
+
+do push(output, i) for i in split_into_bytes((uint)len(positions))
 do {
     const parts = stringSplit(pos, "\n")
     const fen = shift(parts) + " 0 1"
-    do push(output, (ubyte)0)
+    do push(output, (ubyte)len(parts)) // push the number of moves
     do chessLoadFEN(fen)
     do push(output, i) for i in split_into_bytes(chessGetZobristHash())
     do {
         do push(output, i) for i in split_into_bytes(chessStringToMove(move))
         // push the weight of the move
-        const short weight = stringToInt(stringSplit(move, " ")#1)
+        const int weight = stringToInt(stringSplit(move, " ")#1)
         do push(output, i) for i in split_into_bytes(weight)
     } for move in parts
 } for pos in positions
@@ -35,26 +45,23 @@ do append(outputFileFormatted, `{i},`) for i in output
 do append(outputFileFormatted, '}')
 do sayln("Formatted output written to ", outputFile + ".txt")
 
-define split_into_bytes(n) {
+define split_into_bytes(n, bool littleEndian = true) {
     make amount = 8
     match typeOf(n) => {
         "byte", "ubyte" => { return [(ubyte)n] }
-        "short", "ushort" => {
-            set amount = 2
-        }
-        "int", "uint" => {
-            set amount = 4
-        }
-        "long", "ulong" => {
-            set amount = 8
-        }
+        "short", "ushort" => { set amount = 2 }
+        "int", "uint" => { set amount = 4 }
+        "long", "ulong" => { set amount = 8 }
     }
 
-    const bytes = []
+    make bytes = []
     do {
         const b = n & 0xFF
         do push(bytes, (ubyte)b)
         set n >>= 8
     } for range(amount)
+
+    set bytes = reverse(bytes) when !littleEndian
+
     return bytes
 }

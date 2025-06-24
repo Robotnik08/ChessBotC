@@ -2,11 +2,15 @@
 #include "chess.h"
 #include "engine.h"
 
+#include "opening_book.h"
+
 extern Board board;
 extern unsigned long long int repetition_history[1000];
 extern int move_history_count;
 
 int debug = 0;
+
+extern bool inBook;
 
 void trim_newline(char* str) {
     size_t len = strlen(str);
@@ -21,6 +25,7 @@ int main(int argc, char* argv[]) {
 
     char line[2048];
     bool running = true;
+    inBook = true; // start with book enabled
 
     if (argc == 2 && strcmp(argv[1], "engine") == 0) {
         while (running && fgets(line, sizeof(line), stdin)) {
@@ -33,7 +38,6 @@ int main(int argc, char* argv[]) {
                 repetition_history[0] = getZobristHash();
                 move_history_count = 0;
                 printf("ok\n");
-
             } else if (strcmp(line, "setmovehistory") == 0) {
                 if (!fgets(line, sizeof(line), stdin)) break;
                 trim_newline(line);
