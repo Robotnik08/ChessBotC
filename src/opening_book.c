@@ -3,6 +3,18 @@
 
 extern const unsigned char opening_book_compressed[];
 
+static uint64_t state;
+
+void seed_rng(uint64_t seed) {
+    state = seed;
+}
+
+// PCG-style PRNG (cheap but decent)
+uint32_t rand32() {
+    state = state * 6364136223846793005ULL + 1;
+    return (uint32_t)(state >> 32);
+}
+
 // parse compressed opening book data into hashtable
 
 // hash table variables
@@ -73,7 +85,7 @@ void initOpeningBook() {
 }
 
 Move getBookMove(uint64_t hash, unsigned int seed) {
-    srand(seed);
+    seed_rng(seed);
 
     unsigned int index = hash % BOOK_SIZE;
     BookEntry* entry = &opening_book[index];
@@ -89,7 +101,7 @@ Move getBookMove(uint64_t hash, unsigned int seed) {
                 total_weight += entry->weights[i];
             }
 
-            unsigned int random_value = rand() % total_weight;
+            unsigned int random_value = rand32() % total_weight;
             unsigned int cumulative_weight = 0;
 
             for (unsigned char i = 0; i < num_entries; i++) {
