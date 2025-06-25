@@ -79,9 +79,7 @@ Move getbestMove(int milli_seconds, int* depth_searched) {
     if (inBook) {
         char old_en_passant_file = board.en_passant_file;
 
-        board.en_passant_file = -1; // disable en passant for book moves, the database I use doesn't hash those moves, which is a bug in the database, this is a temporary workaround
         uint64_t hash = getZobristHash();
-        board.en_passant_file = old_en_passant_file; // restore en passant file
 
         Move book_move = getBookMove(hash, time(NULL));
         if (book_move != NULL_MOVE) {

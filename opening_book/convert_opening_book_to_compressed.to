@@ -22,7 +22,7 @@ const output = []
 do push(output, i) for i in split_into_bytes((uint)len(positions))
 do {
     const parts = stringSplit(pos, "\n")
-    const fen = shift(parts) + " 0 1"
+    const fen = shift(parts)
     do push(output, (ubyte)len(parts)) // push the number of moves
     do chessLoadFEN(fen)
     do push(output, i) for i in split_into_bytes(chessGetZobristHash())
