@@ -34,7 +34,7 @@ int findBestMove(int depth, Move* best_move, int best_move_index) {
         unmakeMove(moves[i]);
 
         if (stop_search) {
-            if (best_move) {
+            if (best_move && selectedMove != NULL_MOVE) {
                 *best_move = selectedMove;
             }
 
