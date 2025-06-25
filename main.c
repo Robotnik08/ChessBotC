@@ -58,9 +58,11 @@ int main(int argc, char* argv[]) {
                 int milliseconds = atoi(line);
 
                 int depth_searched = 0;
-                Move best_move = getbestMove(milliseconds, &depth_searched);
+                int eval = 0;
+                Move best_move = getbestMove(milliseconds, &depth_searched, &eval);
                 printMove(best_move); // this prints to stdout (e.g., "e2e4")
                 printf("%d\n", depth_searched);
+                printf("%d\n", eval);
 
                 printf("ok\n");
 

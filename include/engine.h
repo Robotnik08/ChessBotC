@@ -7,6 +7,6 @@ void initEngine();
 
 void cleanupEngine();
 
-Move getbestMove(int milli_seconds, int* depth_searched);
+Move getbestMove(int milli_seconds, int* depth_searched, int* eval);
 
 #endif // ENGINE_H

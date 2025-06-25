@@ -1,17 +1,23 @@
 #include "evaluate.h"
 #include "chess.h"
 #include "position_maps.h"
+#include "masks.h"
 
 extern Board board;
 extern unsigned long long int repetition_history[1000];
 extern int move_history_count;
 
 extern int tables[16 * 64];
+extern Bitboard passedPawnMask[128];
 
 float combinedValues = 1.0f;
 
 const int pieceValues[] = {
     100, 350, 350, 525, 1000, 0 // pawn, knight, bishop, rook, queen;
+};
+
+const int pastPawnBonus[] = {
+    0, 100, 80, 60, 40, 20, 10, 0
 };
 
 int evaluatePosition() {
@@ -84,7 +90,36 @@ int evaluatePosition() {
         }
     }
     
+    eval += calculatePawns(WHITE);
+    eval -= calculatePawns(BLACK);
+    
     return eval * (board.side_to_move == WHITE ? 1 : -1);
+}
+
+int calculatePawns(int color) {
+    Bitboard pawns = board.bitboards[PAWN | color];
+    Bitboard opponentPawns = board.bitboards[PAWN | OTHER_SIDE(color)];
+
+    int index_offset = (color == WHITE) ? 0 : 64;
+
+    int eval = 0;
+
+    Bitboard bb = pawns;
+    while (bb) {
+        int square = __builtin_ctzll(bb);
+        
+        Bitboard passedMask = passedPawnMask[square + index_offset];
+
+        if (!(opponentPawns & passedMask)) {
+            // passed pawn
+            int ranksFromPromotion = (color == WHITE) ? (7 - square / 8) : (square / 8);
+            eval += pastPawnBonus[ranksFromPromotion];
+        }
+
+        bb &= bb - 1;
+    }
+
+    return eval;
 }
 
 void initCombinedValues() {

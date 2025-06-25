@@ -6,6 +6,7 @@
 #include "evaluate.h"
 #include "transposition_table.h"
 #include "opening_book.h"
+#include "masks.h"
 
 #include <time.h>
 #include <math.h>
@@ -21,6 +22,7 @@ void initEngine() {
     initCombinedValues();
     initTranspositionTable();
     initOpeningBook();
+    initMasks();
 }
 
 void cleanupEngine(){
@@ -32,7 +34,7 @@ Move best_move_so_far = NULL_MOVE;
 int depth = 2;
 int best_move_index = -1;
 
-extern int debug;
+int highest_eval;
 
 ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
     depth = 2;
@@ -47,7 +49,7 @@ ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
             }
             break;
         }
-        debug = eval;
+        highest_eval = eval;
         if (IS_MATE(eval)) {
             best_move_so_far = move;
             stop_search = true;
@@ -70,7 +72,7 @@ ThreadReturn THREAD_CALLCONV search_thread_fn(void* arg) {
     return 0;
 }
 
-Move getbestMove(int milli_seconds, int* depth_searched) {
+Move getbestMove(int milli_seconds, int* depth_searched, int* eval) {
     Thread thread;
     stop_search = false;
     best_move_so_far = NULL_MOVE;
@@ -88,6 +90,9 @@ Move getbestMove(int milli_seconds, int* depth_searched) {
             if (depth_searched) {
                 *depth_searched = 0; // no depth searched for book moves
             }
+            if (eval) {
+                *eval = 0; // no evaluation for book moves
+            }
             return best_move_so_far;
         }
 
@@ -98,12 +103,13 @@ Move getbestMove(int milli_seconds, int* depth_searched) {
     
     best_move_index = -1;
     Move move = NULL_MOVE;
-    int eval = findBestMove(depth, &move, best_move_index);
-    if (IS_MATE(eval)) {
+    int depth1_eval = findBestMove(depth, &move, best_move_index);
+    if (IS_MATE(depth1_eval)) {
         stop_search = true;
         clearTranspositionTable(); // the transposition table breaks when a mate is found, don't know why yet
     }
     best_move_so_far = move;
+    highest_eval = depth1_eval;
 
     Move moves[MAX_MOVES];
     int num_moves = generateMoves(moves, false);
@@ -143,6 +149,9 @@ Move getbestMove(int milli_seconds, int* depth_searched) {
 
     if (depth_searched) {
         *depth_searched = depth - 1; // Return the last depth searched
+    }
+    if (eval) {
+        *eval = highest_eval; // Return the evaluation of the last move
     }
 
     return best_move_so_far;
