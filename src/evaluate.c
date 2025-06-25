@@ -18,7 +18,7 @@ int evaluatePosition() {
     int eval = 0;
 
     int points = 0;
-    for (int i = PAWN; i <= KING; i++) {
+    for (int i = KNIGHT; i <= KING; i++) {
         Bitboard whiteBoard = board.bitboards[i | WHITE];
         Bitboard blackBoard = board.bitboards[i | BLACK];
 
@@ -58,6 +58,29 @@ int evaluatePosition() {
                     }
                 }
             }
+        }
+    }
+
+    // pawn is like the king, it has an endgame value
+    Bitboard whitePawns = board.bitboards[PAWN | WHITE];
+    Bitboard blackPawns = board.bitboards[PAWN | BLACK];
+    float endgameWeight = 1.0f - ((float)points / combinedValues);
+    if (whitePawns) {
+        Bitboard wp = whitePawns;
+        while (wp) {
+            int square = __builtin_ctzll(wp);
+            eval += (1.0f - endgameWeight) * (tables[IDX(PAWN_MIDGAME, WHITE, square)]);
+            eval += endgameWeight * (tables[IDX(PAWN_ENDGAME, WHITE, square)]);
+            wp &= wp - 1;
+        }
+    }
+    if (blackPawns) {
+        Bitboard bp = blackPawns;
+        while (bp) {
+            int square = __builtin_ctzll(bp);
+            eval -= (1.0f - endgameWeight) * (tables[IDX(PAWN_MIDGAME, BLACK, square)]);
+            eval -= endgameWeight * (tables[IDX(PAWN_ENDGAME, BLACK, square)]);
+            bp &= bp - 1;
         }
     }
     

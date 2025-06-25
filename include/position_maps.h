@@ -8,6 +8,9 @@
 #define KING_MIDGAME (KING)
 #define KING_ENDGAME (KING + 1)
 
+#define PAWN_MIDGAME (PAWN)
+#define PAWN_ENDGAME (KING + 2)
+
 void initPositionMaps();
 
 #endif
