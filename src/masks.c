@@ -23,7 +23,7 @@ void initMasks() {
         if (file > 0) {
             passedPawnMask[i] |= fileAMask << (file - 1);
         }
-        passedPawnMask[i] >>= rank * 8;
+        passedPawnMask[i] <<= rank * 8;
 
         // black pawns
         passedPawnMask[i + 64] |= fileAMask << file;
@@ -33,6 +33,6 @@ void initMasks() {
         if (file > 0) {
             passedPawnMask[i + 64] |= fileAMask << (file - 1);
         }
-        passedPawnMask[i + 64] <<= (7 - rank) * 8;
+        passedPawnMask[i + 64] >>= (7 - rank) * 8;
     }
 }

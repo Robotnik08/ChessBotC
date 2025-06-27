@@ -59,6 +59,11 @@ int search(int depth, int ply_from_root, int alpha, int beta) {
         return 0;
     }
 
+    updateBoardState(true, true);
+    if (board.state != NONE) {
+        return board.state;
+    }
+
     // skip if mating sequence was already found and better then this ply
     alpha = __max(alpha, -MATE_SCORE + ply_from_root);
     beta = __min(beta, MATE_SCORE - ply_from_root);

@@ -20,6 +20,13 @@ const int pastPawnBonus[] = {
     0, 100, 80, 60, 40, 20, 10, 0
 };
 
+const Bitboard kingSafetyMasks[4] = {
+    0x7ULL, // white king queen side
+    0xe0ULL, // white king king side
+    0x700000000000000ULL, // black king queen side
+    0xe000000000000000ULL // black king king side
+};
+
 int evaluatePosition() {
     int eval = 0;
 
