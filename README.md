@@ -1,4 +1,4 @@
-# Chess Engine Project
+# Chess Engine C
 
 ## Overview
 This project is a chess engine written in C. It includes a core engine, evaluation functions, an opening book, and a DLL for integration. The project is organized for easy building and extension.
