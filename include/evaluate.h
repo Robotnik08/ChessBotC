@@ -9,4 +9,6 @@ int calculatePawns(int color);
 
 void initCombinedValues();
 
+int calculateKingSafety(int color);
+
 #endif // EVALUATE_H

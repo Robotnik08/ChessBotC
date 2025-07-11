@@ -89,6 +89,17 @@ int blackKingMapEndGame[64] = {
     -50,-30,-30,-30,-30,-30,-30,-50
 };
 
+int fromEdge[64] = {
+    1, 1, 1, 1, 1, 1, 1, 1,
+    1, 2, 2, 2, 2, 2, 2, 1,
+    1, 2, 3, 3, 3, 3, 2, 1,
+    1, 2, 3, 4, 4, 3, 2, 1,
+    1, 2, 3, 4, 4, 3, 2, 1,
+    1, 2, 3, 3, 3, 3, 2, 1,
+    1, 2, 2, 2, 2, 2, 2, 1,
+    1, 1, 1, 1, 1, 1, 1, 1
+};
+
 int whitePawnMap[64];
 int whitePawnMapEndGame[64];
 int whiteKnightMap[64];
@@ -113,22 +124,6 @@ void initPositionMaps() {
         whiteQueenMap[i] = blackQueenMap[63 - i];
         whiteKingMapMiddleGame[i] = blackKingMapMiddleGame[63 - i];
         whiteKingMapEndGame[i] = blackKingMapEndGame[63 - i];
-    }
-
-    for (int i = 0; i < 64; i++) {
-        whitePawnMap[i] += pieceValues[PAWN];
-        whitePawnMapEndGame[i] += pieceValues[PAWN];
-        whiteKnightMap[i] += pieceValues[KNIGHT];
-        whiteBishopMap[i] += pieceValues[BISHOP];
-        whiteRookMap[i] += pieceValues[ROOK];
-        whiteQueenMap[i] += pieceValues[QUEEN];
-
-        blackPawnMap[i] += pieceValues[PAWN];
-        blackPawnMapEndGame[i] += pieceValues[PAWN];
-        blackKnightMap[i] += pieceValues[KNIGHT];
-        blackBishopMap[i] += pieceValues[BISHOP];
-        blackRookMap[i] += pieceValues[ROOK];
-        blackQueenMap[i] += pieceValues[QUEEN];
     }
 
     memcpy(&tables[0 * 64], whitePawnMap, sizeof(whitePawnMap));
