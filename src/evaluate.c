@@ -22,6 +22,7 @@ const int pastPawnBonus[] = {
 };
 
 #define KING_SAFETY_BONUS 12
+#define KING_CENTER_BONUS 4
 
 const Bitboard kingSafetyMasks[4] = {
     0x70707ULL, // white king queen side
@@ -35,7 +36,7 @@ int evaluatePosition() {
 
     int points = 0;
     // get points for each piece
-    for (int i = KNIGHT; i < KING; i++) {
+    for (int i = KNIGHT; i <= QUEEN; i++) {
         Bitboard whiteBoard = board.bitboards[i | WHITE];
         Bitboard blackBoard = board.bitboards[i | BLACK];
 
@@ -60,11 +61,11 @@ int evaluatePosition() {
 
             eval += reverseEndgameWeight * (tables[IDX(KING_MIDGAME, WHITE, white_square)]);
             eval += endgameWeight * (tables[IDX(KING_ENDGAME, WHITE, white_square)]);
-            eval += endgameWeight * (fromEdge[white_square] * 10);
+            eval += endgameWeight * (fromEdge[white_square] * KING_CENTER_BONUS);
 
             eval -= reverseEndgameWeight * (tables[IDX(KING_MIDGAME, BLACK, black_square)]);
             eval -= endgameWeight * (tables[IDX(KING_ENDGAME, BLACK, black_square)]);
-            eval -= endgameWeight * (fromEdge[black_square] * 10);
+            eval -= endgameWeight * (fromEdge[black_square] * KING_CENTER_BONUS);
 
         } else {
             if (whiteBoard) {

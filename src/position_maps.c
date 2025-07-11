@@ -110,7 +110,6 @@ int whiteKingMapMiddleGame[64];
 int whiteKingMapEndGame[64];
 
 int tables[16 * 64];
-extern int pieceValues[6]; // pawn, knight, bishop, rook, queen, king
 
 
 void initPositionMaps() {
